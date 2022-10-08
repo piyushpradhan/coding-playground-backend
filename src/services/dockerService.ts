@@ -1,96 +1,84 @@
-const { Docker } = require("node-docker-api");
-const httpStatus = require("http-status");
-const generateContainerName = require("../utils/generate");
+import { Docker } from "node-docker-api";
+import Dockerode from "dockerode";
+import { generateContainerName } from "../middlewares/manageContainers";
+import httpStatus from "http-status";
+import { ResponseMessageType } from "../utils/types";
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
+const dockerode = new Dockerode({ socketPath: "/var/run/docker.sock" });
 
-const checkIfContainerExists = async (containerId: string) => {
+export const checkIfContainerExists = async (containerId: string) => {
   try {
     const container = docker.container.get(containerId);
     const containerInfo = await container.status();
     return containerInfo;
   } catch (e) {
-    return {
+    const errorMessage: ResponseMessageType = {
       statusCode: httpStatus.NOT_FOUND,
       message: "Container not found",
     };
+    throw errorMessage;
   }
 };
 
-const createContainer = async (containerName: string) => {
-  const container = await docker.container.create({
-    Image: "react-base",
-    name: containerName,
-    Env: ["PORT=3000"],
-    ExposedPorts: {
-      "3000/tcp": {},
-    },
-    HostConfig: {
-      PortBindings: {
-        "3000/tcp": [
-          {
-            HostPort: "3000",
-          },
-        ],
+export const createContainer = async (containerName: string) => {
+  dockerode
+    .createContainer({
+      Image: "node:16.17.0",
+      name: containerName,
+      Cmd: ["tail", "-f", "/dev/null"],
+      Tty: true,
+      OpenStdin: true,
+      StdinOnce: true,
+      HostConfig: {
+        AutoRemove: true,
+        Binds: ["/var/run/docker.sock:/var/run/docker.sock"],
       },
-    },
-  });
-  return container;
+    })
+    .then((container: any) => {
+      container.start();
+      return container;
+    });
 };
 
-const startContainer = async () => {
+export const startContainer = async () => {
   try {
     const containerName = generateContainerName();
-    const container = await createContainer("react");
-    // start the container
-    await container.start();
-    return {
+    await createContainer(containerName);
+    const errorMessage: ResponseMessageType = {
       statusCode: httpStatus.OK,
       message: "Container started",
     };
+    return errorMessage;
   } catch (e) {
-    console.log(e);
-    return {
-      statusCode: httpStatus.INTERNAL_SERVER_ERROR,
-      message: "Something went wrong",
-    };
+    return e;
   }
 };
 
-const stopContainer = async (containerId: string) => {
+export const stopContainer = async (containerId: string) => {
   try {
+    const containerInfo = await checkIfContainerExists(containerId);
     const container = docker.container.get(containerId);
     await container.stop();
-    return {
+    const errorMessage: ResponseMessageType = {
       statusCode: httpStatus.OK,
       message: "Container stopped",
     };
+    return errorMessage;
   } catch (e) {
-    return {
-      statusCode: httpStatus.INTERNAL_SERVER_ERROR,
-      message: "Something went wrong",
-    };
+    throw e;
   }
 };
 
-const deleteContainer = async (containerId: string) => {
+export const deleteContainer = async (containerId: string) => {
   try {
     const container = docker.container.get(containerId);
     await container.delete();
-    return {
+    const errorMessage: ResponseMessageType = {
       statusCode: httpStatus.OK,
       message: "Container deleted",
     };
+    return errorMessage;
   } catch (e) {
-    return {
-      statusCode: httpStatus.INTERNAL_SERVER_ERROR,
-      message: "Something went wrong",
-    };
+    throw e;
   }
-};
-
-module.exports = {
-  checkIfContainerExists,
-  stopContainer,
-  deleteContainer,
-  startContainer,
 };

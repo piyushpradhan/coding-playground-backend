@@ -1,32 +1,20 @@
 import { Request, Response } from "express";
-const ErrorResponse = require("../utils/constants");
-const docker = require("../services/docker");
-const httpStatus = require("http-status");
+import { ErrorResponse } from "../utils/constants";
+import * as dockerService from "../services/dockerService";
+import httpStatus from "http-status";
 
-const getContainer = (req: Request, res: Response) => {
+export const getContainer = (req: Request, res: Response) => {
   res.send(req.params.isRunning);
 };
 
-const startContainer = async (req: Request, res: Response) => {
-  const startResponse = await docker.startContainer();
+export const startContainer = async (req: Request, res: Response) => {
+  const startResponse = await dockerService.startContainer();
   console.log(startResponse);
 };
 
-const stopContainer = async (req: Request, res: Response) => {
+export const stopContainer = async (req: Request, res: Response) => {
   const containerId: string = req.params.containerId ?? "";
-  const stopResponse = await docker.stopContainer(containerId);
+  const stopResponse = await dockerService.stopContainer(containerId);
   console.log(stopResponse);
-  if (req.params.isRunning === ErrorResponse.NOT_FOUND) {
-    res.send({
-      message: "Container not found",
-    });
-  } else {
-    res.send(stopResponse);
-  }
-};
-
-module.exports = {
-  getContainer,
-  stopContainer,
-  startContainer,
+  res.send(stopResponse);
 };

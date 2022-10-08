@@ -1,14 +1,14 @@
 "use strict";
-const express = require("express");
-const containerRoutes = require("./containerRoutes");
-const router = express.Router();
-const defaultRoutes = [
+var express = require("express");
+var containerRoutes = require("./containerRoutes");
+var router = express.Router();
+var defaultRoutes = [
     {
         path: "/containers",
         route: containerRoutes,
     },
 ];
-defaultRoutes.forEach((route) => {
+defaultRoutes.forEach(function (route) {
     router.use(route.path, route.route);
 });
 module.exports = router;

@@ -1,24 +1,16 @@
 import express from "express";
 const router = express.Router();
-const containerController = require("../controllers/containerController");
-const manageContainers = require("../middlewares/manageContainers");
+import {
+  getContainer,
+  startContainer,
+  stopContainer,
+} from "../controllers/containerController";
+import { checkIfContainerIsRunning } from "../middlewares/manageContainers";
 
-router.get(
-  "/:containerId",
-  [manageContainers.checkIfContainerIsRunning],
-  containerController.getContainer
-);
+router.get("/:containerId", [checkIfContainerIsRunning], getContainer);
 
-router.post(
-  "/start",
-  [manageContainers.checkIfContainerIsRunning],
-  containerController.startContainer
-);
+router.post("/start", startContainer);
 
-router.post(
-  "/:containerId/stop",
-  [manageContainers.checkIfContainerIsRunning],
-  containerController.stopContainer
-);
+router.post("/:containerId/stop", [checkIfContainerIsRunning], stopContainer);
 
 module.exports = router;

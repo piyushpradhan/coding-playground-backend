@@ -8,97 +8,159 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const { Docker } = require("node-docker-api");
-const httpStatus = require("http-status");
-const generateContainerName = require("../utils/generate");
-const docker = new Docker({ socketPath: "/var/run/docker.sock" });
-const checkIfContainerExists = (containerId) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const container = docker.container.get(containerId);
-        const containerInfo = yield container.status();
-        return containerInfo;
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
-    catch (e) {
-        return {
-            statusCode: httpStatus.NOT_FOUND,
-            message: "Container not found",
-        };
-    }
-});
-const createContainer = (containerName) => __awaiter(void 0, void 0, void 0, function* () {
-    const container = yield docker.container.create({
-        Image: "react-base",
-        name: containerName,
-        Env: ["PORT=3000"],
-        ExposedPorts: {
-            "3000/tcp": {},
-        },
-        HostConfig: {
-            PortBindings: {
-                "3000/tcp": [
-                    {
-                        HostPort: "3000",
-                    },
-                ],
-            },
-        },
-    });
-    return container;
-});
-const startContainer = () => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const containerName = generateContainerName();
-        const container = yield createContainer("react");
-        // start the container
-        yield container.start();
-        return {
-            statusCode: httpStatus.OK,
-            message: "Container started",
-        };
-    }
-    catch (e) {
-        console.log(e);
-        return {
-            statusCode: httpStatus.INTERNAL_SERVER_ERROR,
-            message: "Something went wrong",
-        };
-    }
-});
-const stopContainer = (containerId) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const container = docker.container.get(containerId);
-        yield container.stop();
-        return {
-            statusCode: httpStatus.OK,
-            message: "Container stopped",
-        };
-    }
-    catch (e) {
-        return {
-            statusCode: httpStatus.INTERNAL_SERVER_ERROR,
-            message: "Something went wrong",
-        };
-    }
-});
-const deleteContainer = (containerId) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const container = docker.container.get(containerId);
-        yield container.delete();
-        return {
-            statusCode: httpStatus.OK,
-            message: "Container deleted",
-        };
-    }
-    catch (e) {
-        return {
-            statusCode: httpStatus.INTERNAL_SERVER_ERROR,
-            message: "Something went wrong",
-        };
-    }
-});
-module.exports = {
-    checkIfContainerExists,
-    stopContainer,
-    deleteContainer,
-    startContainer,
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteContainer = exports.stopContainer = exports.startContainer = exports.createContainer = exports.checkIfContainerExists = void 0;
+var node_docker_api_1 = require("node-docker-api");
+var dockerode_1 = __importDefault(require("dockerode"));
+var manageContainers_1 = require("../middlewares/manageContainers");
+var http_status_1 = __importDefault(require("http-status"));
+var docker = new node_docker_api_1.Docker({ socketPath: "/var/run/docker.sock" });
+var dockerode = new dockerode_1.default({ socketPath: "/var/run/docker.sock" });
+var checkIfContainerExists = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
+    var container, containerInfo, e_1, errorMessage;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                container = docker.container.get(containerId);
+                return [4 /*yield*/, container.status()];
+            case 1:
+                containerInfo = _a.sent();
+                return [2 /*return*/, containerInfo];
+            case 2:
+                e_1 = _a.sent();
+                errorMessage = {
+                    statusCode: http_status_1.default.NOT_FOUND,
+                    message: "Container not found",
+                };
+                throw errorMessage;
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.checkIfContainerExists = checkIfContainerExists;
+var createContainer = function (containerName) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        dockerode
+            .createContainer({
+            Image: "node:16.17.0",
+            name: containerName,
+            Cmd: ["tail", "-f", "/dev/null"],
+            Tty: true,
+            OpenStdin: true,
+            StdinOnce: true,
+            HostConfig: {
+                AutoRemove: true,
+                Binds: ["/var/run/docker.sock:/var/run/docker.sock"],
+            },
+        })
+            .then(function (container) {
+            container.start();
+            return container;
+        });
+        return [2 /*return*/];
+    });
+}); };
+exports.createContainer = createContainer;
+var startContainer = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var containerName, errorMessage, e_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                containerName = (0, manageContainers_1.generateContainerName)();
+                return [4 /*yield*/, (0, exports.createContainer)(containerName)];
+            case 1:
+                _a.sent();
+                errorMessage = {
+                    statusCode: http_status_1.default.OK,
+                    message: "Container started",
+                };
+                return [2 /*return*/, errorMessage];
+            case 2:
+                e_2 = _a.sent();
+                return [2 /*return*/, e_2];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.startContainer = startContainer;
+var stopContainer = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
+    var containerInfo, container, errorMessage, e_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, (0, exports.checkIfContainerExists)(containerId)];
+            case 1:
+                containerInfo = _a.sent();
+                container = docker.container.get(containerId);
+                return [4 /*yield*/, container.stop()];
+            case 2:
+                _a.sent();
+                errorMessage = {
+                    statusCode: http_status_1.default.OK,
+                    message: "Container stopped",
+                };
+                return [2 /*return*/, errorMessage];
+            case 3:
+                e_3 = _a.sent();
+                throw e_3;
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.stopContainer = stopContainer;
+var deleteContainer = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
+    var container, errorMessage, e_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                container = docker.container.get(containerId);
+                return [4 /*yield*/, container.delete()];
+            case 1:
+                _a.sent();
+                errorMessage = {
+                    statusCode: http_status_1.default.OK,
+                    message: "Container deleted",
+                };
+                return [2 /*return*/, errorMessage];
+            case 2:
+                e_4 = _a.sent();
+                throw e_4;
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.deleteContainer = deleteContainer;
