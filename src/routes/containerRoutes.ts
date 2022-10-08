@@ -13,4 +13,4 @@ router.post("/start", startContainer);
 
 router.post("/:containerId/stop", [checkIfContainerIsRunning], stopContainer);
 
-module.exports = router;
+export default router;
