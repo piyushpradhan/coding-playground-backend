@@ -58,10 +58,16 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteContainer = exports.stopContainer = exports.startContainer = exports.getContainer = void 0;
 var constants_1 = require("../utils/constants");
 var dockerService = __importStar(require("../services/dockerService"));
+var databaseService = __importStar(require("../services/databaseService"));
+var client_1 = require("@prisma/client");
+var http_status_1 = __importDefault(require("http-status"));
 var getContainer = function (req, res) {
     if (req.params.containerId.trim() !== "" || req.params.containerId) {
         console.log(req.params.containerId);
@@ -84,7 +90,12 @@ var startContainer = function (req, res) { return __awaiter(void 0, void 0, void
             case 0: return [4 /*yield*/, dockerService.createContainer()];
             case 1:
                 container = _a.sent();
-                // TODO: update database with new container ID, port and status
+                if (!(container.statusCode && container.statusCode === http_status_1.default.OK)) return [3 /*break*/, 3];
+                return [4 /*yield*/, databaseService.createNewContainer(container.container, container.port.toString())];
+            case 2:
+                _a.sent();
+                _a.label = 3;
+            case 3:
                 res.send(container);
                 return [2 /*return*/];
         }
@@ -101,7 +112,12 @@ var stopContainer = function (req, res) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, dockerService.stopContainer(containerId)];
             case 1:
                 stopResponse = _b.sent();
-                // TODO: update container status in database
+                if (!(stopResponse.statusCode && stopResponse.statusCode === http_status_1.default.OK)) return [3 /*break*/, 3];
+                return [4 /*yield*/, databaseService.updateContainerStatus(stopResponse.container, client_1.Status.STOPPED)];
+            case 2:
+                _b.sent();
+                _b.label = 3;
+            case 3:
                 res.send(stopResponse);
                 return [2 /*return*/];
         }
@@ -118,7 +134,12 @@ var deleteContainer = function (req, res) { return __awaiter(void 0, void 0, voi
                 return [4 /*yield*/, dockerService.deleteContainer(containerId)];
             case 1:
                 deleteResponse = _b.sent();
-                // TODO: remove container from database
+                if (!(deleteResponse.statusCode && deleteResponse.statusCode === http_status_1.default.OK)) return [3 /*break*/, 3];
+                return [4 /*yield*/, databaseService.deleteContainer(deleteResponse.container)];
+            case 2:
+                _b.sent();
+                _b.label = 3;
+            case 3:
                 res.send(deleteResponse);
                 return [2 /*return*/];
         }

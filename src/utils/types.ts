@@ -1,4 +1,5 @@
-export type ResponseMessageType = {
+export type ContainerOpMessage = {
   statusCode: number;
-  message: string;
+  container: string;
+  port: number;
 };

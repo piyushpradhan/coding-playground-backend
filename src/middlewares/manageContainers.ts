@@ -1,8 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ErrorResponse } from "../utils/constants";
 import { checkIfContainerExists } from "../services/dockerService";
-import { ResponseMessageType } from "../utils/types";
-import { Container } from "node-docker-api/lib/container";
 
 export const checkIfContainerIsRunning = async (
   req: Request,

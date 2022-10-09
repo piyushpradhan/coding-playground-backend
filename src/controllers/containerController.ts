@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { ErrorResponse } from "../utils/constants";
 import * as dockerService from "../services/dockerService";
+import * as databaseService from "../services/databaseService";
+import { ContainerOpMessage } from "../utils/types";
+import { Status } from "@prisma/client";
 import httpStatus from "http-status";
 
 export const getContainer = (req: Request, res: Response) => {
@@ -18,21 +21,27 @@ export const getContainer = (req: Request, res: Response) => {
 };
 
 export const startContainer = async (req: Request, res: Response) => {
-  const container = await dockerService.createContainer();
-  // TODO: update database with new container ID, port and status
+  const container: ContainerOpMessage = await dockerService.createContainer();
+  if (container.statusCode && container.statusCode === httpStatus.OK) {
+	await databaseService.createNewContainer(container.container, container.port.toString());
+  }
   res.send(container);
 };
 
 export const stopContainer = async (req: Request, res: Response) => {
   const containerId: string = req.params.containerId ?? "";
   const stopResponse = await dockerService.stopContainer(containerId);
-  // TODO: update container status in database
+  if (stopResponse.statusCode && stopResponse.statusCode === httpStatus.OK) {
+	await databaseService.updateContainerStatus(stopResponse.container, Status.STOPPED);
+  }
   res.send(stopResponse);
 };
 
 export const deleteContainer = async (req: Request, res: Response) => {
   const containerId: string = req.params.containerId ?? "";
   const deleteResponse = await dockerService.deleteContainer(containerId);
-  // TODO: remove container from database
+  if (deleteResponse.statusCode && deleteResponse.statusCode === httpStatus.OK) {
+	await databaseService.deleteContainer(deleteResponse.container);
+  }
   res.send(deleteResponse);
 }
