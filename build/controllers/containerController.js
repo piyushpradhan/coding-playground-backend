@@ -60,19 +60,31 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.stopContainer = exports.startContainer = exports.getContainer = void 0;
+var constants_1 = require("../utils/constants");
 var dockerService = __importStar(require("../services/dockerService"));
 var getContainer = function (req, res) {
-    res.send(req.params.isRunning);
+    if (req.params.containerId.trim() !== "" || req.params.containerId) {
+        console.log(req.params.containerId);
+        var containerId = req.params.containerId;
+        res.send({
+            container: containerId,
+        });
+    }
+    else {
+        res.send({
+            message: constants_1.ErrorResponse.NOT_FOUND,
+        });
+    }
 };
 exports.getContainer = getContainer;
 var startContainer = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var startResponse;
+    var container;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, dockerService.startContainer()];
             case 1:
-                startResponse = _a.sent();
-                console.log(startResponse);
+                container = _a.sent();
+                console.log(container);
                 return [2 /*return*/];
         }
     });

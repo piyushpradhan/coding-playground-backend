@@ -39,15 +39,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteContainer = exports.stopContainer = exports.startContainer = exports.createContainer = exports.checkIfContainerExists = void 0;
+exports.deleteContainer = exports.stopContainer = exports.startContainer = exports.createContainer = exports.buildImage = exports.checkIfContainerExists = void 0;
 var node_docker_api_1 = require("node-docker-api");
 var dockerode_1 = __importDefault(require("dockerode"));
-var manageContainers_1 = require("../middlewares/manageContainers");
 var http_status_1 = __importDefault(require("http-status"));
-var docker = new node_docker_api_1.Docker({ socketPath: "/var/run/docker.sock" });
-var dockerode = new dockerode_1.default({ socketPath: "/var/run/docker.sock" });
+var docker = new node_docker_api_1.Docker({ socketPath: "/run/docker.sock" });
+var dockerode = new dockerode_1.default({ socketPath: "/run/docker.sock" });
 var checkIfContainerExists = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var container, containerInfo, e_1, errorMessage;
+    var container, containerInfo, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -56,67 +55,106 @@ var checkIfContainerExists = function (containerId) { return __awaiter(void 0, v
                 return [4 /*yield*/, container.status()];
             case 1:
                 containerInfo = _a.sent();
-                return [2 /*return*/, containerInfo];
+                console.log(containerInfo);
+                return [2 /*return*/, container.id];
             case 2:
-                e_1 = _a.sent();
-                errorMessage = {
-                    statusCode: http_status_1.default.NOT_FOUND,
-                    message: "Container not found",
-                };
-                throw errorMessage;
+                err_1 = _a.sent();
+                return [2 /*return*/, ""];
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.checkIfContainerExists = checkIfContainerExists;
-var createContainer = function (containerName) { return __awaiter(void 0, void 0, void 0, function () {
+var buildImage = function (containerName) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
-        dockerode
-            .createContainer({
-            Image: "node:16.17.0",
-            name: containerName,
-            Cmd: ["tail", "-f", "/dev/null"],
-            Tty: true,
-            OpenStdin: true,
-            StdinOnce: true,
-            HostConfig: {
-                AutoRemove: true,
-                Binds: ["/var/run/docker.sock:/var/run/docker.sock"],
-            },
-        })
-            .then(function (container) {
-            container.start();
-            return container;
+        dockerode.buildImage({
+            context: __dirname,
+            src: ['src/template/Dockerfile']
+        }, { t: "react-base" }, function (err, response) {
+            console.log(err);
+            console.log(response);
         });
         return [2 /*return*/];
     });
 }); };
-exports.createContainer = createContainer;
-var startContainer = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var containerName, errorMessage, e_2;
+exports.buildImage = buildImage;
+var createContainer = function (containerName) { return __awaiter(void 0, void 0, void 0, function () {
+    var createdContainer;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                containerName = (0, manageContainers_1.generateContainerName)();
-                return [4 /*yield*/, (0, exports.createContainer)(containerName)];
+            case 0: return [4 /*yield*/, docker.container.create({
+                    Image: "node:16.17.0",
+                    name: containerName,
+                    envPath: "/app/node_modules/.bin:$PATH",
+                    copy: [
+                        {
+                            src: "/app",
+                            dest: "/app",
+                            options: {
+                                chown: "node:node",
+                            },
+                        },
+                        {
+                            src: "/app/package.json",
+                            dest: "/app/package.json",
+                        },
+                        {
+                            src: "/app/package-lock.json",
+                            dest: "/app/package-lock.json",
+                        },
+                    ],
+                    workingDir: "/app",
+                    Cmd: ["npm", "install", "&&", "npm", "start"],
+                    Tty: true,
+                    OpenStdin: true,
+                    StdinOnce: true,
+                    AttachStdin: true,
+                    AttachStdout: true,
+                    AttachStderr: true,
+                    ExposedPorts: {
+                        "3000/tcp": {},
+                    },
+                    HostConfig: {
+                        PortBindings: {
+                            "3000/tcp": [
+                                {
+                                    HostPort: "9000",
+                                },
+                            ],
+                        },
+                    },
+                })];
             case 1:
-                _a.sent();
-                errorMessage = {
-                    statusCode: http_status_1.default.OK,
-                    message: "Container started",
-                };
-                return [2 /*return*/, errorMessage];
-            case 2:
-                e_2 = _a.sent();
-                return [2 /*return*/, e_2];
-            case 3: return [2 /*return*/];
+                createdContainer = _a.sent();
+                createdContainer.attach({
+                    stream: true,
+                    stdin: true,
+                    stdout: true,
+                    stderr: true,
+                });
+                return [2 /*return*/, createdContainer];
         }
+    });
+}); };
+exports.createContainer = createContainer;
+var startContainer = function () { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        try {
+            dockerode.run("react-base", ["npm start"], process.stdout, function (err, data, container) {
+                console.log(err);
+                console.log("data", data);
+                console.log("container", container);
+            });
+        }
+        catch (e) {
+            return [2 /*return*/, e];
+        }
+        return [2 /*return*/];
     });
 }); };
 exports.startContainer = startContainer;
 var stopContainer = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var containerInfo, container, errorMessage, e_3;
+    var containerInfo, container, errorMessage, e_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -134,15 +172,15 @@ var stopContainer = function (containerId) { return __awaiter(void 0, void 0, vo
                 };
                 return [2 /*return*/, errorMessage];
             case 3:
-                e_3 = _a.sent();
-                throw e_3;
+                e_1 = _a.sent();
+                throw e_1;
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.stopContainer = stopContainer;
 var deleteContainer = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var container, errorMessage, e_4;
+    var container, errorMessage, e_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -157,8 +195,8 @@ var deleteContainer = function (containerId) { return __awaiter(void 0, void 0, 
                 };
                 return [2 /*return*/, errorMessage];
             case 2:
-                e_4 = _a.sent();
-                throw e_4;
+                e_2 = _a.sent();
+                throw e_2;
             case 3: return [2 /*return*/];
         }
     });

@@ -4,12 +4,22 @@ import * as dockerService from "../services/dockerService";
 import httpStatus from "http-status";
 
 export const getContainer = (req: Request, res: Response) => {
-  res.send(req.params.isRunning);
+  if (req.params.containerId.trim() !== "" || req.params.containerId) {
+    console.log(req.params.containerId);
+    const containerId = req.params.containerId;
+    res.send({
+      container: containerId,
+    });
+  } else {
+    res.send({
+      message: ErrorResponse.NOT_FOUND,
+    });
+  }
 };
 
 export const startContainer = async (req: Request, res: Response) => {
-  const startResponse = await dockerService.startContainer();
-  console.log(startResponse);
+  const container = await dockerService.startContainer();
+  console.log(container);
 };
 
 export const stopContainer = async (req: Request, res: Response) => {

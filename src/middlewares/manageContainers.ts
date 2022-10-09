@@ -9,10 +9,9 @@ export const checkIfContainerIsRunning = async (
   res: Response,
   next: NextFunction
 ) => {
-  const isRunning: ResponseMessageType | Container =
-    await checkIfContainerExists(req.params.containerId);
-  req.params.isRunning = isRunning.toString();
-  // else req.params.isRunning = ErrorResponse.NOT_FOUND;
+  const containerId = req.params.containerId;
+  const container = await checkIfContainerExists(containerId);
+  req.params.containerId = container ?? "";
   next();
 };
 

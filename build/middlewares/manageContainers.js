@@ -39,14 +39,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateContainerName = exports.checkIfContainerIsRunning = void 0;
 var dockerService_1 = require("../services/dockerService");
 var checkIfContainerIsRunning = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var isRunning;
+    var containerId, container;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, (0, dockerService_1.checkIfContainerExists)(req.params.containerId)];
+            case 0:
+                containerId = req.params.containerId;
+                return [4 /*yield*/, (0, dockerService_1.checkIfContainerExists)(containerId)];
             case 1:
-                isRunning = _a.sent();
-                req.params.isRunning = isRunning.toString();
-                // else req.params.isRunning = ErrorResponse.NOT_FOUND;
+                container = _a.sent();
+                req.params.containerId = container !== null && container !== void 0 ? container : "";
                 next();
                 return [2 /*return*/];
         }
