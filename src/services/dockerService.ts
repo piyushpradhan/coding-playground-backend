@@ -1,6 +1,5 @@
 import { Docker } from "node-docker-api";
 import httpStatus from "http-status";
-import { ResponseMessageType } from "../utils/types";
 import util from "util";
 import { createContainerData } from "../utils/dockerHelper";
 const exec = util.promisify(require("child_process").exec);
@@ -17,27 +16,39 @@ export const checkIfContainerExists = async (containerId: string) => {
   }
 };
 
-export const startContainer = async () => {
+const startContainer = async (containerId: string) => {
   try {
-	const { stdout, stderr } = await exec(`curl --unix-socket /var/run/docker.sock -H "Content-Type: application/json" -d '${createContainerData}' -X POST http://localhost/v1.41/containers/create`)	
+	const { stdout, stderr } = await exec(`curl --unix-socket /var/run/docker.sock -X POST http://localhost/v1.41/containers/${containerId}/start`)	
 	return stdout;
+  } catch (err) {
+	throw err;
+  }
+}
+
+export const createContainer = async () => {
+  try {
+	const { stdout , stderr } = await exec(`curl --unix-socket /var/run/docker.sock -H "Content-Type: application/json" -d '${createContainerData}' -X POST http://localhost/v1.41/containers/create`)	
+	const containerId = JSON.parse(stdout)["Id"];	
+	await startContainer(containerId);
+	return {
+	  "statusCode": httpStatus.OK,
+	  "container": containerId
+	};
   } catch (e) {
-    return e;
+    throw e;
   }
 };
 
 export const stopContainer = async (containerId: string) => {
   try {
-    const containerInfo = await checkIfContainerExists(containerId);
     const container = docker.container.get(containerId);
     await container.stop();
-    const errorMessage: ResponseMessageType = {
-      statusCode: httpStatus.OK,
-      message: "Container stopped",
-    };
-    return errorMessage;
-  } catch (e) {
-    throw e;
+    return {
+	  "statusCode": httpStatus.OK,
+	  "containerId": container.id
+	};
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -45,12 +56,11 @@ export const deleteContainer = async (containerId: string) => {
   try {
     const container = docker.container.get(containerId);
     await container.delete();
-    const errorMessage: ResponseMessageType = {
-      statusCode: httpStatus.OK,
-      message: "Container deleted",
-    };
-    return errorMessage;
-  } catch (e) {
-    throw e;
+    return {
+	  "statusCode": httpStatus.OK,
+	  "containerId": container.id
+	};
+  } catch (err) {
+    throw err;
   }
 };

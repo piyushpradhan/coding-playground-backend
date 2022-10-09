@@ -10,4 +10,5 @@ var manageContainers_1 = require("../middlewares/manageContainers");
 router.get("/:containerId", [manageContainers_1.checkIfContainerIsRunning], containerController_1.getContainer);
 router.post("/start", containerController_1.startContainer);
 router.post("/:containerId/stop", [manageContainers_1.checkIfContainerIsRunning], containerController_1.stopContainer);
+router.post("/:containerId/delete", [manageContainers_1.checkIfContainerIsRunning], containerController_1.deleteContainer);
 exports.default = router;

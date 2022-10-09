@@ -59,7 +59,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.stopContainer = exports.startContainer = exports.getContainer = void 0;
+exports.deleteContainer = exports.stopContainer = exports.startContainer = exports.getContainer = void 0;
 var constants_1 = require("../utils/constants");
 var dockerService = __importStar(require("../services/dockerService"));
 var getContainer = function (req, res) {
@@ -81,11 +81,11 @@ var startContainer = function (req, res) { return __awaiter(void 0, void 0, void
     var container;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, dockerService.startContainer()];
+            case 0: return [4 /*yield*/, dockerService.createContainer()];
             case 1:
                 container = _a.sent();
-                // update database with new container ID, port and status
-                console.log(container);
+                // TODO: update database with new container ID, port and status
+                res.send(container);
                 return [2 /*return*/];
         }
     });
@@ -101,10 +101,27 @@ var stopContainer = function (req, res) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, dockerService.stopContainer(containerId)];
             case 1:
                 stopResponse = _b.sent();
-                console.log(stopResponse);
+                // TODO: update container status in database
                 res.send(stopResponse);
                 return [2 /*return*/];
         }
     });
 }); };
 exports.stopContainer = stopContainer;
+var deleteContainer = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var containerId, deleteResponse;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                containerId = (_a = req.params.containerId) !== null && _a !== void 0 ? _a : "";
+                return [4 /*yield*/, dockerService.deleteContainer(containerId)];
+            case 1:
+                deleteResponse = _b.sent();
+                // TODO: remove container from database
+                res.send(deleteResponse);
+                return [2 /*return*/];
+        }
+    });
+}); };
+exports.deleteContainer = deleteContainer;

@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteContainer = exports.stopContainer = exports.startContainer = exports.checkIfContainerExists = void 0;
+exports.deleteContainer = exports.stopContainer = exports.createContainer = exports.checkIfContainerExists = void 0;
 var node_docker_api_1 = require("node-docker-api");
 var http_status_1 = __importDefault(require("http-status"));
 var util_1 = __importDefault(require("util"));
@@ -66,52 +66,72 @@ var checkIfContainerExists = function (containerId) { return __awaiter(void 0, v
     });
 }); };
 exports.checkIfContainerExists = checkIfContainerExists;
-var startContainer = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, stdout, stderr, e_1;
+var startContainer = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, stdout, stderr, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, exec("curl --unix-socket /var/run/docker.sock -H \"Content-Type: application/json\" -d '".concat(dockerHelper_1.createContainerData, "' -X POST http://localhost/v1.41/containers/create"))];
+                return [4 /*yield*/, exec("curl --unix-socket /var/run/docker.sock -X POST http://localhost/v1.41/containers/".concat(containerId, "/start"))];
             case 1:
                 _a = _b.sent(), stdout = _a.stdout, stderr = _a.stderr;
                 return [2 /*return*/, stdout];
             case 2:
-                e_1 = _b.sent();
-                return [2 /*return*/, e_1];
+                err_2 = _b.sent();
+                throw err_2;
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.startContainer = startContainer;
+var createContainer = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, stdout, stderr, containerId, e_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, exec("curl --unix-socket /var/run/docker.sock -H \"Content-Type: application/json\" -d '".concat(dockerHelper_1.createContainerData, "' -X POST http://localhost/v1.41/containers/create"))];
+            case 1:
+                _a = _b.sent(), stdout = _a.stdout, stderr = _a.stderr;
+                containerId = JSON.parse(stdout)["Id"];
+                return [4 /*yield*/, startContainer(containerId)];
+            case 2:
+                _b.sent();
+                return [2 /*return*/, {
+                        "statusCode": http_status_1.default.OK,
+                        "container": containerId
+                    }];
+            case 3:
+                e_1 = _b.sent();
+                throw e_1;
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createContainer = createContainer;
 var stopContainer = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var containerInfo, container, errorMessage, e_2;
+    var container, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
-                return [4 /*yield*/, (0, exports.checkIfContainerExists)(containerId)];
-            case 1:
-                containerInfo = _a.sent();
+                _a.trys.push([0, 2, , 3]);
                 container = docker.container.get(containerId);
                 return [4 /*yield*/, container.stop()];
-            case 2:
+            case 1:
                 _a.sent();
-                errorMessage = {
-                    statusCode: http_status_1.default.OK,
-                    message: "Container stopped",
-                };
-                return [2 /*return*/, errorMessage];
-            case 3:
-                e_2 = _a.sent();
-                throw e_2;
-            case 4: return [2 /*return*/];
+                return [2 /*return*/, {
+                        "statusCode": http_status_1.default.OK,
+                        "containerId": container.id
+                    }];
+            case 2:
+                err_3 = _a.sent();
+                throw err_3;
+            case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.stopContainer = stopContainer;
 var deleteContainer = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var container, errorMessage, e_3;
+    var container, err_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -120,14 +140,13 @@ var deleteContainer = function (containerId) { return __awaiter(void 0, void 0, 
                 return [4 /*yield*/, container.delete()];
             case 1:
                 _a.sent();
-                errorMessage = {
-                    statusCode: http_status_1.default.OK,
-                    message: "Container deleted",
-                };
-                return [2 /*return*/, errorMessage];
+                return [2 /*return*/, {
+                        "statusCode": http_status_1.default.OK,
+                        "containerId": container.id
+                    }];
             case 2:
-                e_3 = _a.sent();
-                throw e_3;
+                err_4 = _a.sent();
+                throw err_4;
             case 3: return [2 /*return*/];
         }
     });

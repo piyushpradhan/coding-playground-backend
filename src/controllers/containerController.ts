@@ -18,14 +18,21 @@ export const getContainer = (req: Request, res: Response) => {
 };
 
 export const startContainer = async (req: Request, res: Response) => {
-  const container = await dockerService.startContainer();
-  // update database with new container ID, port and status
-  console.log(container);
+  const container = await dockerService.createContainer();
+  // TODO: update database with new container ID, port and status
+  res.send(container);
 };
 
 export const stopContainer = async (req: Request, res: Response) => {
   const containerId: string = req.params.containerId ?? "";
   const stopResponse = await dockerService.stopContainer(containerId);
-  console.log(stopResponse);
+  // TODO: update container status in database
   res.send(stopResponse);
 };
+
+export const deleteContainer = async (req: Request, res: Response) => {
+  const containerId: string = req.params.containerId ?? "";
+  const deleteResponse = await dockerService.deleteContainer(containerId);
+  // TODO: remove container from database
+  res.send(deleteResponse);
+}
