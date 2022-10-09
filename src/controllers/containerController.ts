@@ -19,6 +19,7 @@ export const getContainer = (req: Request, res: Response) => {
 
 export const startContainer = async (req: Request, res: Response) => {
   const container = await dockerService.startContainer();
+  // update database with new container ID, port and status
   console.log(container);
 };
 

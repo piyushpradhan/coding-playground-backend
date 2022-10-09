@@ -84,6 +84,7 @@ var startContainer = function (req, res) { return __awaiter(void 0, void 0, void
             case 0: return [4 /*yield*/, dockerService.startContainer()];
             case 1:
                 container = _a.sent();
+                // update database with new container ID, port and status
                 console.log(container);
                 return [2 /*return*/];
         }

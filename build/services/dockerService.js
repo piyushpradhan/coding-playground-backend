@@ -39,12 +39,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteContainer = exports.stopContainer = exports.startContainer = exports.createContainer = exports.buildImage = exports.checkIfContainerExists = void 0;
+exports.deleteContainer = exports.stopContainer = exports.startContainer = exports.checkIfContainerExists = void 0;
 var node_docker_api_1 = require("node-docker-api");
-var dockerode_1 = __importDefault(require("dockerode"));
 var http_status_1 = __importDefault(require("http-status"));
+var util_1 = __importDefault(require("util"));
+var dockerHelper_1 = require("../utils/dockerHelper");
+var exec = util_1.default.promisify(require("child_process").exec);
 var docker = new node_docker_api_1.Docker({ socketPath: "/run/docker.sock" });
-var dockerode = new dockerode_1.default({ socketPath: "/run/docker.sock" });
 var checkIfContainerExists = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
     var container, containerInfo, err_1;
     return __generator(this, function (_a) {
@@ -65,96 +66,26 @@ var checkIfContainerExists = function (containerId) { return __awaiter(void 0, v
     });
 }); };
 exports.checkIfContainerExists = checkIfContainerExists;
-var buildImage = function (containerName) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        dockerode.buildImage({
-            context: __dirname,
-            src: ['src/template/Dockerfile']
-        }, { t: "react-base" }, function (err, response) {
-            console.log(err);
-            console.log(response);
-        });
-        return [2 /*return*/];
-    });
-}); };
-exports.buildImage = buildImage;
-var createContainer = function (containerName) { return __awaiter(void 0, void 0, void 0, function () {
-    var createdContainer;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, docker.container.create({
-                    Image: "node:16.17.0",
-                    name: containerName,
-                    envPath: "/app/node_modules/.bin:$PATH",
-                    copy: [
-                        {
-                            src: "/app",
-                            dest: "/app",
-                            options: {
-                                chown: "node:node",
-                            },
-                        },
-                        {
-                            src: "/app/package.json",
-                            dest: "/app/package.json",
-                        },
-                        {
-                            src: "/app/package-lock.json",
-                            dest: "/app/package-lock.json",
-                        },
-                    ],
-                    workingDir: "/app",
-                    Cmd: ["npm", "install", "&&", "npm", "start"],
-                    Tty: true,
-                    OpenStdin: true,
-                    StdinOnce: true,
-                    AttachStdin: true,
-                    AttachStdout: true,
-                    AttachStderr: true,
-                    ExposedPorts: {
-                        "3000/tcp": {},
-                    },
-                    HostConfig: {
-                        PortBindings: {
-                            "3000/tcp": [
-                                {
-                                    HostPort: "9000",
-                                },
-                            ],
-                        },
-                    },
-                })];
-            case 1:
-                createdContainer = _a.sent();
-                createdContainer.attach({
-                    stream: true,
-                    stdin: true,
-                    stdout: true,
-                    stderr: true,
-                });
-                return [2 /*return*/, createdContainer];
-        }
-    });
-}); };
-exports.createContainer = createContainer;
 var startContainer = function () { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        try {
-            dockerode.run("react-base", ["npm start"], process.stdout, function (err, data, container) {
-                console.log(err);
-                console.log("data", data);
-                console.log("container", container);
-            });
+    var _a, stdout, stderr, e_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, exec("curl --unix-socket /var/run/docker.sock -H \"Content-Type: application/json\" -d '".concat(dockerHelper_1.createContainerData, "' -X POST http://localhost/v1.41/containers/create"))];
+            case 1:
+                _a = _b.sent(), stdout = _a.stdout, stderr = _a.stderr;
+                return [2 /*return*/, stdout];
+            case 2:
+                e_1 = _b.sent();
+                return [2 /*return*/, e_1];
+            case 3: return [2 /*return*/];
         }
-        catch (e) {
-            return [2 /*return*/, e];
-        }
-        return [2 /*return*/];
     });
 }); };
 exports.startContainer = startContainer;
 var stopContainer = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var containerInfo, container, errorMessage, e_1;
+    var containerInfo, container, errorMessage, e_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -172,15 +103,15 @@ var stopContainer = function (containerId) { return __awaiter(void 0, void 0, vo
                 };
                 return [2 /*return*/, errorMessage];
             case 3:
-                e_1 = _a.sent();
-                throw e_1;
+                e_2 = _a.sent();
+                throw e_2;
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.stopContainer = stopContainer;
 var deleteContainer = function (containerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var container, errorMessage, e_2;
+    var container, errorMessage, e_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -195,8 +126,8 @@ var deleteContainer = function (containerId) { return __awaiter(void 0, void 0, 
                 };
                 return [2 /*return*/, errorMessage];
             case 2:
-                e_2 = _a.sent();
-                throw e_2;
+                e_3 = _a.sent();
+                throw e_3;
             case 3: return [2 /*return*/];
         }
     });

@@ -1,10 +1,10 @@
 import { Docker } from "node-docker-api";
-import Dockerode from "dockerode";
-import { generateContainerName } from "../middlewares/manageContainers";
 import httpStatus from "http-status";
 import { ResponseMessageType } from "../utils/types";
+import util from "util";
+import { createContainerData } from "../utils/dockerHelper";
+const exec = util.promisify(require("child_process").exec);
 const docker = new Docker({ socketPath: "/run/docker.sock" });
-const dockerode = new Dockerode({ socketPath: "/run/docker.sock" });
 
 export const checkIfContainerExists = async (containerId: string) => {
   try {
@@ -17,75 +17,10 @@ export const checkIfContainerExists = async (containerId: string) => {
   }
 };
 
-export const buildImage = async (containerName: string) => {
-  dockerode.buildImage({
-	context: __dirname,
-	src: ['src/template/Dockerfile']
-  }, {t: "react-base"}, function (err, response) {
-	console.log(err);
-	console.log(response);
-  });
-}
-
-export const createContainer = async (containerName: string) => {
-  const createdContainer = await docker.container.create({
-    Image: "node:16.17.0",
-    name: containerName,
-    envPath: "/app/node_modules/.bin:$PATH",
-    copy: [
-      {
-        src: "/app",
-        dest: "/app",
-        options: {
-          chown: "node:node",
-        },
-      },
-      {
-        src: "/app/package.json",
-        dest: "/app/package.json",
-      },
-      {
-        src: "/app/package-lock.json",
-        dest: "/app/package-lock.json",
-      },
-    ],
-    workingDir: "/app",
-    Cmd: ["npm", "install", "&&", "npm", "start"],
-    Tty: true,
-    OpenStdin: true,
-    StdinOnce: true,
-    AttachStdin: true,
-    AttachStdout: true,
-    AttachStderr: true,
-    ExposedPorts: {
-      "3000/tcp": {},
-    },
-    HostConfig: {
-      PortBindings: {
-        "3000/tcp": [
-          {
-            HostPort: "9000",
-          },
-        ],
-      },
-    },
-  });
-  createdContainer.attach({
-    stream: true,
-    stdin: true,
-    stdout: true,
-    stderr: true,
-  });
-  return createdContainer;
-};
-
 export const startContainer = async () => {
   try {
-	dockerode.run("react-base", ["npm start"], process.stdout, function (err: any, data: any, container: any) {
-	  console.log(err);
-	  console.log("data", data);
-	  console.log("container", container);
-	})
+	const { stdout, stderr } = await exec(`curl --unix-socket /var/run/docker.sock -H "Content-Type: application/json" -d '${createContainerData}' -X POST http://localhost/v1.41/containers/create`)	
+	return stdout;
   } catch (e) {
     return e;
   }
