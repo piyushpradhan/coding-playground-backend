@@ -32,3 +32,47 @@ npx prisma studio
 
 ### Container information
 - The id and mapped ports of running/stopped containers are stored in a Postgres database deployed on heroku
+
+## Dockerfile used to create containers for user sessions
+```Dockerfile
+# pull official base image
+FROM node:16.17.0
+
+WORKDIR /app
+
+# add `/app/node_modules/.bin` to $PATH
+ENV PATH /app/node_modules/.bin:$PATH
+
+# install app dependencies
+COPY package.json ./
+COPY package-lock.json ./
+RUN npm install --silent
+RUN npm install react-scripts@3.4.1 -g --silent
+
+# add app
+COPY . ./
+
+EXPOSE 3000
+
+# start app
+CMD ["npm", "start"]
+```
+- Configuration while starting the container
+```JSON
+{
+  "Image": "playground", 
+  "Cmd": [], 
+  "PortBindings": { 
+    "3000/tcp": [
+      { 
+        "HostPort": "0" 
+      }
+    ], 
+    "22/tcp": [
+      { 
+        "HostPort": "0" 
+      }
+    ]
+  }
+}
+```
