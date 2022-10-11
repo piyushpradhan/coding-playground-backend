@@ -34,6 +34,13 @@ npm start
 npx prisma studio
 ```
 
+### Setting up docker 
+- Create a new React app using `create-react-app` in a different location and put the Dockerfile present in this README inside the root directory of the newly created react app inorder to build the required docker image
+- The server uses this image to create containers
+```bash
+docker build -t playground .
+```
+
 # How I've implemented this
 <img src="coding_playground_design.svg">
 
