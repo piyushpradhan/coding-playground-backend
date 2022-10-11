@@ -67,11 +67,6 @@ CMD ["npm", "start"]
       { 
         "HostPort": "0" 
       }
-    ], 
-    "22/tcp": [
-      { 
-        "HostPort": "0" 
-      }
     ]
   }
 }
