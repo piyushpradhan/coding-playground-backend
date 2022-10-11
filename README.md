@@ -1,4 +1,22 @@
-# coding-playground-backend
+# Backend for Coding Playground
+
+# Usage
+```
+# creating and starting a new container
+POST /api/containers/start
+
+# stopping an existing container
+POST /api/containers/<container_id>/stop
+
+# deleting and existing container
+POST /api/containers/<container_id>/delete
+
+# executing shell commands
+POST /api/containers/<container_id>/exec -d 'command=<command>'
+
+# getting information about a particular container 
+GET /api/containers/<container_id>
+```
 
 # Setting it up locally 
 
