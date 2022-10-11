@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { ErrorResponse } from "../utils/constants";
 import * as dockerService from "../services/dockerService";
+import * as shellService from "../services/shellService";
 import * as databaseService from "../services/databaseService";
-import { ContainerOpMessage } from "../utils/types";
+import { ContainerOpMessage, ShellOpMessage } from "../utils/types";
 import { Status } from "@prisma/client";
 import httpStatus from "http-status";
 
@@ -23,7 +24,7 @@ export const getContainer = (req: Request, res: Response) => {
 export const startContainer = async (req: Request, res: Response) => {
   const container: ContainerOpMessage = await dockerService.createContainer();
   if (container.statusCode && container.statusCode === httpStatus.OK) {
-	await databaseService.createNewContainer(container.container, container.port.toString());
+	await databaseService.createNewContainer(container.container, container.reactPort.toString());
   }
   res.send(container);
 };
@@ -45,3 +46,11 @@ export const deleteContainer = async (req: Request, res: Response) => {
   }
   res.send(deleteResponse);
 }
+
+export const executeCommand = async (req: Request, res: Response) => {
+  const containerId: string = req.params.containerId ?? "";
+  const command: string = req.body.command ?? "";
+  const output: ShellOpMessage = await shellService.executeCommand(containerId, command);
+  const formatted = output.stdout?.split('\n');
+  res.json(formatted); 
+};

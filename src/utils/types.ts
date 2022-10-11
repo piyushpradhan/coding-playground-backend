@@ -1,5 +1,10 @@
 export type ContainerOpMessage = {
   statusCode: number;
   container: string;
-  port: number;
+  reactPort: number;
 };
+
+export type ShellOpMessage = {
+  stdout: string | null;
+  stderr: string | null;
+}

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var logo_svg_1 = __importDefault(require("./logo.svg"));
+const logo_svg_1 = __importDefault(require("./logo.svg"));
 require("./App.css");
 function App() {
     return (<div className="App">

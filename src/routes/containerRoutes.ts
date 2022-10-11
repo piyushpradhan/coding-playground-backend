@@ -1,7 +1,8 @@
 import express from "express";
 const router = express.Router();
 import {
-    deleteContainer,
+  deleteContainer,
+  executeCommand,
   getContainer,
   startContainer,
   stopContainer,
@@ -15,5 +16,7 @@ router.post("/start", startContainer);
 router.post("/:containerId/stop", [checkIfContainerIsRunning], stopContainer);
 
 router.post("/:containerId/delete", [checkIfContainerIsRunning], deleteContainer);
+
+router.post("/:containerId/exec", [checkIfContainerIsRunning], executeCommand);
 
 export default router;

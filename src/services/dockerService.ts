@@ -4,6 +4,7 @@ import util from "util";
 import { createContainerData } from "../utils/dockerHelper";
 const exec = util.promisify(require("child_process").exec);
 const docker = new Docker({ socketPath: "/run/docker.sock" });
+const BASE_URL = process.env.BASE_URL;
 
 export const checkIfContainerExists = async (containerId: string) => {
   try {
@@ -16,10 +17,10 @@ export const checkIfContainerExists = async (containerId: string) => {
 
 const getMappedPort = async (containerId: string) => {
   try {
-	const { stdout } = await exec(`curl --unix-socket /var/run/docker.sock -X GET http://localhost/v1.41/containers/${containerId}/json`)
+	const { stdout } = await exec(`curl --unix-socket /var/run/docker.sock -X GET ${BASE_URL}/containers/${containerId}/json`)
 	const containerInfo = JSON.parse(stdout);
-	const port = containerInfo.NetworkSettings.Ports["3000/tcp"][0].HostPort;
-	return port;
+	const reactPort = containerInfo.NetworkSettings.Ports["3000/tcp"][0].HostPort;
+	return reactPort;
   } catch (err) {
 	throw err;
   }
@@ -27,7 +28,7 @@ const getMappedPort = async (containerId: string) => {
 
 const startContainer = async (containerId: string) => {
   try {
-	const { stdout } = await exec(`curl --unix-socket /var/run/docker.sock -X POST http://localhost/v1.41/containers/${containerId}/start`)	
+	const { stdout } = await exec(`curl --unix-socket /var/run/docker.sock -X POST ${BASE_URL}/containers/${containerId}/start`)	
 	return stdout;
   } catch (err) {
 	throw err;
@@ -36,14 +37,14 @@ const startContainer = async (containerId: string) => {
 
 export const createContainer = async () => {
   try {
-	const { stdout } = await exec(`curl --unix-socket /var/run/docker.sock -H "Content-Type: application/json" -d '${createContainerData}' -X POST http://localhost/v1.41/containers/create`)	
+	const { stdout } = await exec(`curl --unix-socket /var/run/docker.sock -H "Content-Type: application/json" -d '${createContainerData}' -X POST ${BASE_URL}/containers/create`)	
 	const containerId = JSON.parse(stdout)["Id"];	
 	await startContainer(containerId);
-	const port = await getMappedPort(containerId);
+	const reactPort = await getMappedPort(containerId);
 	return {
 	  "statusCode": httpStatus.OK,
 	  "container": containerId,
-	  "port": port 
+	  "reactPort": reactPort,
 	};
   } catch (e) {
     throw e;

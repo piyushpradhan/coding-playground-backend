@@ -8,10 +8,10 @@ datasource db {
 }
 
 model Container {
-  id           Int
-  container_id String @unique
-  status       Status
-  host_port    Int
+  id				Int
+  container_id		String @unique
+  status			Status
+  react_port		Int
 }
 
 enum Status {

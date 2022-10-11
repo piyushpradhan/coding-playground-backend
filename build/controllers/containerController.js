@@ -31,47 +31,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteContainer = exports.stopContainer = exports.startContainer = exports.getContainer = void 0;
-var constants_1 = require("../utils/constants");
-var dockerService = __importStar(require("../services/dockerService"));
-var databaseService = __importStar(require("../services/databaseService"));
-var client_1 = require("@prisma/client");
-var http_status_1 = __importDefault(require("http-status"));
-var getContainer = function (req, res) {
+exports.executeCommand = exports.deleteContainer = exports.stopContainer = exports.startContainer = exports.getContainer = void 0;
+const constants_1 = require("../utils/constants");
+const dockerService = __importStar(require("../services/dockerService"));
+const shellService = __importStar(require("../services/shellService"));
+const databaseService = __importStar(require("../services/databaseService"));
+const client_1 = require("@prisma/client");
+const http_status_1 = __importDefault(require("http-status"));
+const getContainer = (req, res) => {
     if (req.params.containerId.trim() !== "" || req.params.containerId) {
         console.log(req.params.containerId);
-        var containerId = req.params.containerId;
+        const containerId = req.params.containerId;
         res.send({
             container: containerId,
         });
@@ -83,66 +57,40 @@ var getContainer = function (req, res) {
     }
 };
 exports.getContainer = getContainer;
-var startContainer = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var container;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, dockerService.createContainer()];
-            case 1:
-                container = _a.sent();
-                if (!(container.statusCode && container.statusCode === http_status_1.default.OK)) return [3 /*break*/, 3];
-                return [4 /*yield*/, databaseService.createNewContainer(container.container, container.port.toString())];
-            case 2:
-                _a.sent();
-                _a.label = 3;
-            case 3:
-                res.send(container);
-                return [2 /*return*/];
-        }
-    });
-}); };
+const startContainer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const container = yield dockerService.createContainer();
+    if (container.statusCode && container.statusCode === http_status_1.default.OK) {
+        yield databaseService.createNewContainer(container.container, container.reactPort.toString());
+    }
+    res.send(container);
+});
 exports.startContainer = startContainer;
-var stopContainer = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var containerId, stopResponse;
+const stopContainer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                containerId = (_a = req.params.containerId) !== null && _a !== void 0 ? _a : "";
-                return [4 /*yield*/, dockerService.stopContainer(containerId)];
-            case 1:
-                stopResponse = _b.sent();
-                if (!(stopResponse.statusCode && stopResponse.statusCode === http_status_1.default.OK)) return [3 /*break*/, 3];
-                return [4 /*yield*/, databaseService.updateContainerStatus(stopResponse.container, client_1.Status.STOPPED)];
-            case 2:
-                _b.sent();
-                _b.label = 3;
-            case 3:
-                res.send(stopResponse);
-                return [2 /*return*/];
-        }
-    });
-}); };
+    const containerId = (_a = req.params.containerId) !== null && _a !== void 0 ? _a : "";
+    const stopResponse = yield dockerService.stopContainer(containerId);
+    if (stopResponse.statusCode && stopResponse.statusCode === http_status_1.default.OK) {
+        yield databaseService.updateContainerStatus(stopResponse.container, client_1.Status.STOPPED);
+    }
+    res.send(stopResponse);
+});
 exports.stopContainer = stopContainer;
-var deleteContainer = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var containerId, deleteResponse;
-    var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                containerId = (_a = req.params.containerId) !== null && _a !== void 0 ? _a : "";
-                return [4 /*yield*/, dockerService.deleteContainer(containerId)];
-            case 1:
-                deleteResponse = _b.sent();
-                if (!(deleteResponse.statusCode && deleteResponse.statusCode === http_status_1.default.OK)) return [3 /*break*/, 3];
-                return [4 /*yield*/, databaseService.deleteContainer(deleteResponse.container)];
-            case 2:
-                _b.sent();
-                _b.label = 3;
-            case 3:
-                res.send(deleteResponse);
-                return [2 /*return*/];
-        }
-    });
-}); };
+const deleteContainer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _b;
+    const containerId = (_b = req.params.containerId) !== null && _b !== void 0 ? _b : "";
+    const deleteResponse = yield dockerService.deleteContainer(containerId);
+    if (deleteResponse.statusCode && deleteResponse.statusCode === http_status_1.default.OK) {
+        yield databaseService.deleteContainer(deleteResponse.container);
+    }
+    res.send(deleteResponse);
+});
 exports.deleteContainer = deleteContainer;
+const executeCommand = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c, _d, _e;
+    const containerId = (_c = req.params.containerId) !== null && _c !== void 0 ? _c : "";
+    const command = (_d = req.body.command) !== null && _d !== void 0 ? _d : "";
+    const output = yield shellService.executeCommand(containerId, command);
+    const formatted = (_e = output.stdout) === null || _e === void 0 ? void 0 : _e.split('\n');
+    res.json(formatted);
+});
+exports.executeCommand = executeCommand;

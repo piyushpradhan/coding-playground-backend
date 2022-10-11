@@ -2,14 +2,14 @@ import { PrismaClient, Status } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const createNewContainer = async (containerId: string, port: string) => {
+export const createNewContainer = async (containerId: string, reactPort: string) => {
   try {
 	await prisma.container.create({
 	  data: {
 		id: 1,
 		container_id: containerId,
 		status: Status.RUNNING,
-		host_port: parseInt(port)
+		react_port: parseInt(reactPort),
 	  }
 	});
   } catch (err) {
