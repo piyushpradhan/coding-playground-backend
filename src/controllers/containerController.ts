@@ -49,8 +49,16 @@ export const deleteContainer = async (req: Request, res: Response) => {
 
 export const executeCommand = async (req: Request, res: Response) => {
   const containerId: string = req.params.containerId ?? "";
-  const command: string = req.body.command ?? "";
+  const command: string = unescape(decodeURIComponent(req.body.command)) ?? "";
   const output: ShellOpMessage = await shellService.executeCommand(containerId, command);
-  const formatted = output.stdout?.split('\n');
-  res.json(formatted); 
+  const formatted: string = output.stdout!;
+  res.send(formatted); 
+};
+
+export const executeSaveCommand = async (req: Request, res: Response) => {
+  const containerId: string = req.params.containerId ?? "";
+  const command: string = unescape(decodeURIComponent(req.body.command)) ?? "";
+  const output: ShellOpMessage = await shellService.executeSaveCommand(containerId, command);
+  const formatted: string = output.stdout!;
+  res.send(formatted); 
 };

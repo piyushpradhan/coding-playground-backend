@@ -12,23 +12,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.executeCommand = void 0;
+exports.executeSaveCommand = exports.executeCommand = void 0;
 const util_1 = __importDefault(require("util"));
 const exec = util_1.default.promisify(require("child_process").exec);
 const executeCommand = (containerId, command) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // TODO: add support for multiple commands (';','&&','|')
-        // TODO: add support for terminating processes
-        const splitCommand = command.split(" ");
-        let dockerExec = "docker exec ";
-        dockerExec += `${containerId} `;
-        for (let ind in splitCommand) {
-            dockerExec += `"${splitCommand[ind]}" `;
-        }
-        const { stdout, stderr } = yield exec(dockerExec);
+        const { stdout, stderr } = yield exec(`docker exec -i ${containerId} sh -c '${command}'`);
         const output = {
             stdout: stdout,
-            stderr: stderr
+            stderr: stderr,
         };
         return output;
     }
@@ -41,3 +33,21 @@ const executeCommand = (containerId, command) => __awaiter(void 0, void 0, void 
     }
 });
 exports.executeCommand = executeCommand;
+const executeSaveCommand = (containerId, command) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { stdout, stderr } = yield exec(`docker exec -i ${containerId} sh -c "${command}"`);
+        const output = {
+            stdout: stdout,
+            stderr: stderr,
+        };
+        return output;
+    }
+    catch (err) {
+        const errResponse = {
+            stdout: null,
+            stderr: err.message
+        };
+        return errResponse;
+    }
+});
+exports.executeSaveCommand = executeSaveCommand;
