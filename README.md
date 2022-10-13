@@ -1,4 +1,22 @@
-# coding-playground-backend
+# Backend for Coding Playground
+
+# Usage
+```
+# creating and starting a new container
+POST /api/containers/start
+
+# stopping an existing container
+POST /api/containers/<container_id>/stop
+
+# deleting and existing container
+POST /api/containers/<container_id>/delete
+
+# executing shell commands
+POST /api/containers/<container_id>/exec -d 'command=<command>'
+
+# getting information about a particular container 
+GET /api/containers/<container_id>
+```
 
 # Setting it up locally 
 
@@ -14,6 +32,13 @@ npm start
 ### Running prisma
 ```bash
 npx prisma studio
+```
+
+### Setting up docker 
+- Create a new React app using `create-react-app` in a different location and put the Dockerfile present in this README inside the root directory of the newly created react app inorder to build the required docker image
+- The server uses this image to create containers
+```bash
+docker build -t playground .
 ```
 
 # How I've implemented this
@@ -32,3 +57,42 @@ npx prisma studio
 
 ### Container information
 - The id and mapped ports of running/stopped containers are stored in a Postgres database deployed on heroku
+
+## Dockerfile used to create containers for user sessions
+```Dockerfile
+# pull official base image
+FROM node:16.17.0
+
+WORKDIR /app
+
+# add `/app/node_modules/.bin` to $PATH
+ENV PATH /app/node_modules/.bin:$PATH
+
+# install app dependencies
+COPY package.json ./
+COPY package-lock.json ./
+RUN npm install --silent
+RUN npm install react-scripts@3.4.1 -g --silent
+
+# add app
+COPY . ./
+
+EXPOSE 3000
+
+# start app
+CMD ["npm", "start"]
+```
+- Configuration while starting the container
+```JSON
+{
+  "Image": "playground", 
+  "Cmd": [], 
+  "PortBindings": { 
+    "3000/tcp": [
+      { 
+        "HostPort": "0" 
+      }
+    ]
+  }
+}
+```
