@@ -88,7 +88,7 @@ exports.deleteContainer = deleteContainer;
 const executeCommand = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _c, _d;
     const containerId = (_c = req.params.containerId) !== null && _c !== void 0 ? _c : "";
-    const command = (_d = unescape(decodeURIComponent(req.body.command))) !== null && _d !== void 0 ? _d : "";
+    const command = (_d = req.body.command) !== null && _d !== void 0 ? _d : "";
     const output = yield shellService.executeCommand(containerId, command);
     const formatted = output.stdout;
     res.send(formatted);
@@ -97,7 +97,7 @@ exports.executeCommand = executeCommand;
 const executeSaveCommand = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _e, _f;
     const containerId = (_e = req.params.containerId) !== null && _e !== void 0 ? _e : "";
-    const command = (_f = unescape(decodeURIComponent(req.body.command))) !== null && _f !== void 0 ? _f : "";
+    const command = (_f = req.body.command) !== null && _f !== void 0 ? _f : "";
     const output = yield shellService.executeSaveCommand(containerId, command);
     const formatted = output.stdout;
     res.send(formatted);
